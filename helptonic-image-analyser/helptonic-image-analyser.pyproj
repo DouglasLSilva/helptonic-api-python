@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>889a0e8a-ef7b-4973-87fe-642f1ba1cbfe</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>helptonic_image_analyser.py</StartupFile>
+    <StartupFile>startup.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -22,6 +22,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="helptonic_image_analyser.py" />
+    <Compile Include="startup.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="images\" />
