@@ -10,7 +10,7 @@ from PIL import Image
 
 myapp = Flask(__name__, static_url_path="", static_folder="static")
 
-def analyseImagebyColor(lower_mask, upper_mask, image, color_name, color_contour):
+def analyseImagebyColor(lower_mask, upper_mask, image, color_name):
     imageConverted = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     imageConverted = cv2.GaussianBlur(imageConverted, (5, 5), 0)
     
@@ -20,11 +20,16 @@ def analyseImagebyColor(lower_mask, upper_mask, image, color_name, color_contour
     cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
     	cv2.CHAIN_APPROX_SIMPLE)
 
+
+    
+    return cnts
+
+def drawContour(cnts,image,color_contour):
     print("Desenhando Contornos")
     cnts_imutils = imutils.grab_contours(cnts)
     for c in cnts_imutils:
         cv2.drawContours(image, [c], -1, color_contour, 2)
-    
+        
     return image
 
 @myapp.route("/")
@@ -33,15 +38,24 @@ def hello():
 
 @myapp.route("/analyser")
 def analyserTestImage():
-    imageOriginal = cv2.imread("static\\two_pencil.jpg")
-
-    lower_blue = np.array([75, 151, 121], dtype="uint8") #Azul
-    upper_blue = np.array([127, 236, 255], dtype="uint8") #Azul
-    imageOriginal = analyseImagebyColor(lower_blue, upper_blue, imageOriginal, "Azul",(0,255,0))
+    imageOriginal = cv2.imread("static\\Arcoiris.png")
     
     lower_yellow = np.array([25, 50, 40], dtype="uint8") #Amarelo
     upper_yellow = np.array([35, 255, 255], dtype="uint8") #Amarelo
-    imageOriginal = analyseImagebyColor(lower_yellow, upper_yellow, imageOriginal, "Amarelo", (255,0,0))
+    cnts_yellow = analyseImagebyColor(lower_yellow, upper_yellow, imageOriginal, "Amarelo")
+    
+    lower_blue = np.array([75, 151, 121], dtype="uint8") #Azul
+    upper_blue = np.array([127, 255, 255], dtype="uint8") #Azul
+    cnts_blue = analyseImagebyColor(lower_blue, upper_blue, imageOriginal, "Azul")
+    
+    lower_green = np.array([40, 38, 40], dtype="uint8") #Verde
+    upper_green = np.array([90, 200, 200], dtype="uint8") #verde
+    cnts_green = analyseImagebyColor(lower_green, upper_green, imageOriginal, "Verde")
+    
+    imageOriginal = drawContour(cnts_yellow,imageOriginal,(255,0,0)) #Contorno Amarelo
+    imageOriginal = drawContour(cnts_blue,imageOriginal,(0,255,0)) #Contorno Azul
+    imageOriginal = drawContour(cnts_green,imageOriginal,(0,0,255)) #Contorno Verde
+    
     
     print("Codificando Imagem")    
     data = cv2.imencode('.png', imageOriginal)[1].tobytes()
