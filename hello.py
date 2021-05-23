@@ -40,21 +40,36 @@ def hello():
 def analyserTestImage():
     imageOriginal = cv2.imread("static\\Arcoiris.png")
     
+    lower_orange = np.array([15, 38, 40], dtype="uint8") #Laranja
+    upper_orange = np.array([24, 200, 200], dtype="uint8") #Laranja
+    cnts_orange = analyseImagebyColor(lower_orange, upper_orange, imageOriginal, "Laranja")
+    
     lower_yellow = np.array([25, 50, 40], dtype="uint8") #Amarelo
-    upper_yellow = np.array([35, 255, 255], dtype="uint8") #Amarelo
+    upper_yellow = np.array([39, 255, 255], dtype="uint8") #Amarelo
     cnts_yellow = analyseImagebyColor(lower_yellow, upper_yellow, imageOriginal, "Amarelo")
     
-    lower_blue = np.array([75, 151, 121], dtype="uint8") #Azul
+    lower_green = np.array([40, 38, 40], dtype="uint8") #Verde
+    upper_green = np.array([80, 200, 200], dtype="uint8") #verde
+    cnts_green = analyseImagebyColor(lower_green, upper_green, imageOriginal, "Verde")
+    
+    lower_blue = np.array([81, 151, 121], dtype="uint8") #Azul
     upper_blue = np.array([127, 255, 255], dtype="uint8") #Azul
     cnts_blue = analyseImagebyColor(lower_blue, upper_blue, imageOriginal, "Azul")
     
-    lower_green = np.array([40, 38, 40], dtype="uint8") #Verde
-    upper_green = np.array([90, 200, 200], dtype="uint8") #verde
-    cnts_green = analyseImagebyColor(lower_green, upper_green, imageOriginal, "Verde")
+    lower_purple = np.array([130, 38, 40], dtype="uint8") #Roxo
+    upper_purple = np.array([144, 200, 200], dtype="uint8") #Roxo
+    cnts_purple = analyseImagebyColor(lower_purple, upper_purple, imageOriginal, "Roxo")
     
-    imageOriginal = drawContour(cnts_yellow,imageOriginal,(255,0,0)) #Contorno Amarelo
-    imageOriginal = drawContour(cnts_blue,imageOriginal,(0,255,0)) #Contorno Azul
-    imageOriginal = drawContour(cnts_green,imageOriginal,(0,0,255)) #Contorno Verde
+    lower_pink = np.array([145, 38, 40], dtype="uint8") #Rosa
+    upper_pink = np.array([160, 200, 200], dtype="uint8") #Rosa
+    cnts_pink = analyseImagebyColor(lower_pink, upper_pink, imageOriginal, "Rosa")
+    
+    imageOriginal = drawContour(cnts_orange,imageOriginal,(255,0,0))
+    imageOriginal = drawContour(cnts_yellow,imageOriginal,(0,255,0)) 
+    imageOriginal = drawContour(cnts_green,imageOriginal,(0,0,255))
+    imageOriginal = drawContour(cnts_blue,imageOriginal,(255,255,0))
+    imageOriginal = drawContour(cnts_purple,imageOriginal,(0,255,255)) 
+    imageOriginal = drawContour(cnts_pink,imageOriginal,(255,0,255))
     
     
     print("Codificando Imagem")    
