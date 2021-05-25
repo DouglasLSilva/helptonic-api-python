@@ -45,7 +45,6 @@ def hello():
     return "Hello Flask, on Azure App Service for Linux";
 
 @myapp.route("/analyser", methods=['POST'])
-@cross_origin()
 def analyserTestImage():
     base64Image = request.json['image']
     image_bytes = base64.b64decode(base64Image)

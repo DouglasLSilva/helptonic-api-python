@@ -13,6 +13,7 @@ ENV PYTHONUNBUFFERED=1
 COPY requirements.txt .
 RUN apt-get update ##[edited]
 RUN apt-get install ffmpeg libsm6 libxext6  -y
+RUN pip install gunicorn
 RUN python -m pip install -r requirements.txt
 
 WORKDIR /app
@@ -24,4 +25,4 @@ RUN adduser -u 5678 --disabled-password --gecos "" appuser && chown -R appuser /
 USER appuser
 
 # During debugging, this entry point will be overridden. For more information, please refer to https://aka.ms/vscode-docker-python-debug
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "hello:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "hello:myapp"]
