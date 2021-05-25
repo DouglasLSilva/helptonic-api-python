@@ -5,10 +5,11 @@ import pathlib
 from flask.helpers import make_response
 import io
 import imutils
-from PIL import Image
+import boto3
+import base64
+import uuid
 
-
-myapp = Flask(__name__, static_url_path="", static_folder="static")
+myapp = Flask(__name__)
 
 def analyseImagebyColor(lower_mask, upper_mask, image, color_name):
     imageConverted = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
@@ -16,29 +17,40 @@ def analyseImagebyColor(lower_mask, upper_mask, image, color_name):
     
     mask = cv2.inRange(imageConverted, lower_mask, upper_mask)
 
-    print("Buscando Contornos")
+    print("Buscando Contornos...")
     cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
     	cv2.CHAIN_APPROX_SIMPLE)
-
-
     
     return cnts
 
 def drawContour(cnts,image,color_contour):
-    print("Desenhando Contornos")
+    print("Desenhando Contornos...")
     cnts_imutils = imutils.grab_contours(cnts)
     for c in cnts_imutils:
         cv2.drawContours(image, [c], -1, color_contour, 2)
         
     return image
 
+def uploadToS3(image):
+    print("Enviando para o S3...")
+    s3 = boto3.resource('s3',
+                        aws_access_key_id = 'AKIAWHFZGRUIP4S5RZW4',
+                        aws_secret_access_key = '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',
+                        region_name = 'sa-east-1')  
+    response = s3.Bucket('helptonic').put_object(Key = str(uuid.uuid4()), Body = image.tostring(), ACL='public-read')
+    print(response)
+
 @myapp.route("/")
 def hello():
     return "Hello Flask, on Azure App Service for Linux";
 
-@myapp.route("/analyser")
+@myapp.route("/analyser", methods=['POST'])
+@cross_origin()
 def analyserTestImage():
-    imageOriginal = cv2.imread("static\\Arcoiris.png")
+    base64Image = request.json['image']
+    image_bytes = base64.b64decode(base64Image)
+    im_arr = np.frombuffer(image_bytes, dtype=np.uint8)
+    imageOriginal = cv2.imdecode(im_arr, flags=cv2.IMREAD_COLOR)
     
     lower_orange = np.array([15, 38, 40], dtype="uint8") #Laranja
     upper_orange = np.array([24, 200, 200], dtype="uint8") #Laranja
@@ -72,9 +84,10 @@ def analyserTestImage():
     imageOriginal = drawContour(cnts_pink,imageOriginal,(255,0,255))
     
     
-    print("Codificando Imagem")    
+    print("Codificando Imagem...")    
     data = cv2.imencode('.png', imageOriginal)[1].tobytes()
-    return Response(b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + data + b'\r\n\r\n', mimetype='multipart/x-mixed-replace; boundary=frame')
+    #uploadToS3(data)
+    return Response(b'--frame\r\n' b'Content-Type: image/png\r\n\r\n' + data + b'\r\n\r\n', mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
 @myapp.errorhandler(Exception)
