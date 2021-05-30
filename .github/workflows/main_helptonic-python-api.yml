@@ -1,0 +1,51 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
+name: Build and deploy container app to Azure Web App - helptonic-python-api
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: 'ubuntu-latest'
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Log in to registry
+      uses: docker/login-action@v1
+      with:
+        registry: https://helptonicpythonapi.azurecr.io/
+        username: ${{ secrets.AzureAppService_ContainerUsername_c8c89bcb967443a8bb76196ed90d602a }}
+        password: ${{ secrets.AzureAppService_ContainerPassword_c57b447586664e77a9a20a27577ce611 }}
+
+    - name: Build and push container image to registry
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: ${{ secrets.AzureAppService_ContainerUsername_c8c89bcb967443a8bb76196ed90d602a }}/helptonicapipython:${{ github.sha }}
+        file: ./Dockerfile
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: 'production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
+    steps:
+    - name: Deploy to Azure Web App
+      id: deploy-to-webapp
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'helptonic-python-api'
+        slot-name: 'production'
+        publish-profile: ${{ secrets.AzureAppService_PublishProfile_6972c8c663ed4475ad7c4d28bc112fe9 }}
+        images: 'helptonicpythonapi.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_c8c89bcb967443a8bb76196ed90d602a }}/helptonicapipython:${{ github.sha }}'
