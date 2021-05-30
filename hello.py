@@ -4,8 +4,8 @@ import cv2
 import pathlib
 from flask.helpers import make_response
 import io
+import requests
 import imutils
-import boto3
 import base64
 import uuid
 
@@ -31,14 +31,24 @@ def drawContour(cnts,image,color_contour):
         
     return image
 
-def uploadToS3(image):
-    print("Enviando para o S3...")
-    s3 = boto3.resource('s3',
-                        aws_access_key_id = 'AKIAWHFZGRUIP4S5RZW4',
-                        aws_secret_access_key = '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',
-                        region_name = 'sa-east-1')  
-    response = s3.Bucket('helptonic').put_object(Key = str(uuid.uuid4()), Body = image.tostring(), ACL='public-read')
-    print(response)
+def uploadToS3(image,token):
+    headers = {'x-access-token' : token}
+    data = {"fileType": ".png"}
+    r = requests.post("https://helptonic-api.azurewebsites.net/s3",data=data,headers=headers)
+    if r.ok:
+        response = r.json()
+        if response['success']:
+            responseUplodad = requests.put(response['uploadUrl'], data=image)
+            if responseUplodad.ok:
+                return True, response['downloadUrl']
+            else:
+                return False, 'Erro enviar dados ao servidor S3.'
+        else:
+            return False, response['message']
+    else:
+        return False, 'Erro enviar dados ao servidor de dados.'
+    
+    print(r)
 
 @myapp.route("/")
 def hello():
@@ -47,6 +57,8 @@ def hello():
 @myapp.route("/analyser", methods=['POST'])
 def analyserTestImage():
     base64Image = request.json['image']
+    tokenUser = request.json['token']
+    
     image_bytes = base64.b64decode(base64Image)
     im_arr = np.frombuffer(image_bytes, dtype=np.uint8)
     imageOriginal = cv2.imdecode(im_arr, flags=cv2.IMREAD_COLOR)
@@ -85,8 +97,12 @@ def analyserTestImage():
     
     print("Codificando Imagem...")    
     data = cv2.imencode('.png', imageOriginal)[1].tobytes()
-    #uploadToS3(data)
-    return Response(b'--frame\r\n' b'Content-Type: image/png\r\n\r\n' + data + b'\r\n\r\n', mimetype='multipart/x-mixed-replace; boundary=frame')
+    success, returnString = uploadToS3(data,tokenUser)
+    if success:
+        return returnString
+    else:
+        return returnString, 500
+
 
 
 @myapp.errorhandler(Exception)

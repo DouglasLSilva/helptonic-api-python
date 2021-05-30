@@ -2,6 +2,6 @@
 Flask
 numpy
 opencv-python
-boto3
 imutils
+requests==2.25.1 
 flask_cors
