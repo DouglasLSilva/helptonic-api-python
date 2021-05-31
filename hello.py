@@ -38,8 +38,10 @@ def uploadToS3(image,token):
     if r.ok:
         response = r.json()
         if response['success']:
+            print("Enviando para o S3...")    
             responseUplodad = requests.put(response['uploadUrl'], data=image)
             if responseUplodad.ok:
+                print("Enviado com sucesso..")  
                 return True, response['downloadUrl']
             else:
                 return False, 'Erro enviar dados ao servidor S3.'
@@ -97,7 +99,9 @@ def analyserTestImage():
     
     print("Codificando Imagem...")    
     data = cv2.imencode('.png', imageOriginal)[1].tobytes()
+    print("Buscando url do S3...")    
     success, returnString = uploadToS3(data,tokenUser)
+    print(returnString)  
     if success:
         return returnString
     else:
